@@ -21,7 +21,7 @@
   - Tailwind CSSでアクセシブルなスタイリングを適用
   - _Requirements: 1.1, 1.2, 1.3, 7.1_
 
-- [ ] 1.3 (P) 汎用ボタンコンポーネントの作成
+- [x] 1.3 (P) 汎用ボタンコンポーネントの作成
   - primary, secondary, dangerのバリアント対応
   - サイズバリエーション(sm, md, lg)の実装
   - lucide-reactアイコンの統合
