@@ -1,0 +1,390 @@
+import type { InstallationRule, UsageCode } from '../types';
+import { SPECIFIC_USAGE_CODES, EVACUATION_DIFFICULTY_CODES } from './usage-types';
+
+/**
+ * 設備設置基準ルールデータ
+ * 
+ * 優先度(priority):
+ * - 100: 最優先ルール(避難困難者施設等)
+ * - 90-99: 高優先度ルール(階数・特定用途等)
+ * - 80-89: 中優先度ルール(面積・通常ルール)
+ * - 70-79: 低優先度ルール(補足ルール)
+ */
+export const INSTALLATION_RULES: InstallationRule[] = [
+  // ========================================
+  // 消火器(令第10条)
+  // ========================================
+  {
+    id: 'FE-001',
+    equipmentType: '消火器',
+    conditions: [{ type: 'area', operator: '>=', value: 0 }],
+    legalBasis: '令第10条',
+    priority: 100,
+    scope: '全域',
+    notes: 'すべての防火対象物に設置義務あり',
+  },
+
+  // ========================================
+  // 屋内消火栓設備(令第11条)
+  // ========================================
+  {
+    id: 'IH-001',
+    equipmentType: '屋内消火栓設備',
+    conditions: [{ type: 'floors', operator: '>=', value: 11 }],
+    legalBasis: '令第11条第1項第1号',
+    priority: 95,
+    scope: '全域',
+    notes: '11階以上の建物は無条件で設置必要(1号消火栓)',
+  },
+  {
+    id: 'IH-002',
+    equipmentType: '屋内消火栓設備',
+    conditions: [
+      {
+        type: 'usage',
+        operator: 'in',
+        value: [
+          '1-i',
+          '1-ro',
+          '2-i',
+          '2-ro',
+          '2-ha',
+          '2-ni',
+          '3-i',
+          '3-ro',
+          '4',
+          '5-i',
+          ...EVACUATION_DIFFICULTY_CODES,
+          '9-i',
+          '16-i',
+          '16-2',
+          '16-3',
+        ],
+      },
+      { type: 'area', operator: '>=', value: 700 },
+    ],
+    legalBasis: '令第11条第1項第2号',
+    priority: 90,
+    scope: '全域',
+    notes: '特定用途で延床面積700㎡以上',
+  },
+  {
+    id: 'IH-003',
+    equipmentType: '屋内消火栓設備',
+    conditions: [{ type: 'area', operator: '>=', value: 1500 }],
+    legalBasis: '令第11条第1項第3号',
+    priority: 85,
+    scope: '全域',
+    notes: 'その他の用途で延床面積1500㎡以上',
+  },
+
+  // ========================================
+  // スプリンクラー設備(令第12条)
+  // ========================================
+  {
+    id: 'SP-001',
+    equipmentType: 'スプリンクラー設備',
+    conditions: [
+      { type: 'usage', operator: 'in', value: EVACUATION_DIFFICULTY_CODES },
+      { type: 'area', operator: '>=', value: 275 },
+    ],
+    legalBasis: '令第12条第1項第1号',
+    priority: 100,
+    scope: '全域',
+    notes: '(六)項イ・ロ施設は延床面積275㎡以上で全域設置',
+  },
+  {
+    id: 'SP-002',
+    equipmentType: 'スプリンクラー設備',
+    conditions: [
+      { type: 'usage', operator: 'in', value: EVACUATION_DIFFICULTY_CODES },
+      { type: 'floors', operator: '>=', value: 3 },
+    ],
+    legalBasis: '令第12条第1項第2号',
+    priority: 98,
+    scope: '3階以上部分',
+    notes: '(六)項イ・ロ施設で3階以上に入院・入所者がいる場合',
+  },
+  {
+    id: 'SP-003',
+    equipmentType: 'スプリンクラー設備',
+    conditions: [
+      { type: 'usage', operator: 'in', value: ['16-2', '16-3'] },
+    ],
+    legalBasis: '令第12条第1項第3号',
+    priority: 100,
+    scope: '全域',
+    notes: '地下街・準地下街は全域設置',
+  },
+  {
+    id: 'SP-004',
+    equipmentType: 'スプリンクラー設備',
+    conditions: [
+      { type: 'usage', operator: 'in', value: SPECIFIC_USAGE_CODES },
+      { type: 'floors', operator: '>=', value: 11 },
+      { type: 'area', operator: '>=', value: 3000 },
+    ],
+    legalBasis: '令第12条第1項第4号',
+    priority: 92,
+    scope: '11階以上部分',
+    notes: '特定用途で11階以上かつ各階床面積3000㎡以上',
+  },
+  {
+    id: 'SP-005',
+    equipmentType: 'スプリンクラー設備',
+    conditions: [
+      { type: 'usage', operator: 'in', value: SPECIFIC_USAGE_CODES },
+      { type: 'area', operator: '>=', value: 3000 },
+    ],
+    legalBasis: '令第12条第1項第5号',
+    priority: 88,
+    scope: '全域',
+    notes: '特定用途で延床面積3000㎡以上',
+  },
+  {
+    id: 'SP-006',
+    equipmentType: 'スプリンクラー設備',
+    conditions: [{ type: 'area', operator: '>=', value: 6000 }],
+    legalBasis: '令第12条第1項第6号',
+    priority: 85,
+    scope: '全域',
+    notes: '非特定用途で延床面積6000㎡以上',
+  },
+
+  // ========================================
+  // 自動火災報知設備(令第21条)
+  // ========================================
+  {
+    id: 'FA-001',
+    equipmentType: '自動火災報知設備',
+    conditions: [
+      { type: 'usage', operator: 'in', value: SPECIFIC_USAGE_CODES },
+      { type: 'area', operator: '>=', value: 300 },
+    ],
+    legalBasis: '令第21条第1項第1号',
+    priority: 90,
+    scope: '全域',
+    notes: '特定用途で延床面積300㎡以上',
+  },
+  {
+    id: 'FA-002',
+    equipmentType: '自動火災報知設備',
+    conditions: [
+      { type: 'usage', operator: 'in', value: SPECIFIC_USAGE_CODES },
+      { type: 'floors', operator: '>=', value: 3 },
+    ],
+    legalBasis: '令第21条第1項第2号',
+    priority: 88,
+    scope: '階段・通路',
+    notes: '特定用途で延床面積300㎡未満でも3階以上は階段・通路に設置',
+  },
+  {
+    id: 'FA-003',
+    equipmentType: '自動火災報知設備',
+    conditions: [{ type: 'area', operator: '>=', value: 500 }],
+    legalBasis: '令第21条第1項第3号',
+    priority: 85,
+    scope: '全域',
+    notes: '非特定用途で延床面積500㎡以上',
+  },
+  {
+    id: 'FA-004',
+    equipmentType: '自動火災報知設備',
+    conditions: [{ type: 'floors', operator: '>=', value: 3 }],
+    legalBasis: '令第21条第1項第4号',
+    priority: 83,
+    scope: '階段・通路',
+    notes: '非特定用途で延床面積500㎡未満でも3階以上は階段・通路に設置',
+  },
+
+  // ========================================
+  // 避難器具(令第25条)
+  // ========================================
+  {
+    id: 'EV-001',
+    equipmentType: '避難器具',
+    conditions: [
+      { type: 'usage', operator: 'in', value: EVACUATION_DIFFICULTY_CODES },
+      { type: 'floors', operator: '>=', value: 2 },
+    ],
+    legalBasis: '令第25条',
+    priority: 100,
+    scope: '2階以上',
+    notes: '避難困難者施設は2階以上で救助袋・緩降機等が必要',
+  },
+  {
+    id: 'EV-002',
+    equipmentType: '避難器具',
+    conditions: [
+      { type: 'usage', operator: '==', value: '5-i' },
+      { type: 'floors', operator: '>=', value: 2 },
+      { type: 'capacity', operator: '>=', value: 20 },
+    ],
+    legalBasis: '令第25条',
+    priority: 95,
+    scope: '2階以上',
+    notes: '旅館・ホテルは2階で収容人員20人以上、3階以上は各階',
+  },
+  {
+    id: 'EV-003',
+    equipmentType: '避難器具',
+    conditions: [
+      { type: 'usage', operator: 'in', value: SPECIFIC_USAGE_CODES },
+      { type: 'floors', operator: '>=', value: 2 },
+      { type: 'capacity', operator: '>=', value: 50 },
+    ],
+    legalBasis: '令第25条',
+    priority: 90,
+    scope: '2階以上',
+    notes: 'その他特定用途は2階で収容人員50人以上、3階以上は各階',
+  },
+  {
+    id: 'EV-004',
+    equipmentType: '避難器具',
+    conditions: [{ type: 'floors', operator: '>=', value: 3 }],
+    legalBasis: '令第25条',
+    priority: 85,
+    scope: '3階以上',
+    notes: '非特定用途は3階以上で設置',
+  },
+
+  // ========================================
+  // 誘導灯・誘導標識(令第26条)
+  // ========================================
+  {
+    id: 'GL-001',
+    equipmentType: '誘導灯',
+    conditions: [
+      { type: 'usage', operator: 'in', value: SPECIFIC_USAGE_CODES },
+      { type: 'area', operator: '>=', value: 150 },
+    ],
+    legalBasis: '令第26条',
+    priority: 90,
+    scope: '避難口・通路',
+    notes: '特定用途で延床面積150㎡以上',
+  },
+  {
+    id: 'GL-002',
+    equipmentType: '誘導灯',
+    conditions: [{ type: 'area', operator: '>=', value: 300 }],
+    legalBasis: '令第26条',
+    priority: 85,
+    scope: '避難口・通路',
+    notes: '非特定用途で延床面積300㎡以上',
+  },
+  {
+    id: 'GL-003',
+    equipmentType: '誘導灯',
+    conditions: [{ type: 'floors', operator: '>=', value: 3 }],
+    legalBasis: '令第26条',
+    priority: 83,
+    scope: '階段・通路',
+    notes: '面積基準未満でも3階以上は階段通路誘導灯が必要',
+  },
+
+  // ========================================
+  // 消防用水(令第27条)
+  // ========================================
+  {
+    id: 'FW-001',
+    equipmentType: '消防用水',
+    conditions: [{ type: 'area', operator: '>=', value: 5000 }],
+    legalBasis: '令第27条',
+    priority: 80,
+    scope: '敷地内',
+    notes: '延床面積5000㎡以上(一部用途除く)',
+  },
+
+  // ========================================
+  // 排煙設備(令第28条)
+  // ========================================
+  {
+    id: 'SM-001',
+    equipmentType: '排煙設備',
+    conditions: [
+      { type: 'basement', operator: '==', value: true },
+      { type: 'usage', operator: 'in', value: SPECIFIC_USAGE_CODES },
+    ],
+    legalBasis: '令第28条',
+    priority: 95,
+    scope: '地階部分',
+    notes: '地階で特定用途の場合',
+  },
+
+  // ========================================
+  // 連結送水管(令第29条)
+  // ========================================
+  {
+    id: 'CS-001',
+    equipmentType: '連結送水管',
+    conditions: [{ type: 'floors', operator: '>=', value: 7 }],
+    legalBasis: '令第29条第1項第1号',
+    priority: 90,
+    scope: '全域',
+    notes: '7階以上の建物',
+  },
+  {
+    id: 'CS-002',
+    equipmentType: '連結送水管',
+    conditions: [
+      { type: 'basement', operator: '==', value: true },
+      { type: 'area', operator: '>=', value: 1000 },
+    ],
+    legalBasis: '令第29条第1項第2号',
+    priority: 88,
+    scope: '地階部分',
+    notes: '地階で床面積1000㎡以上',
+  },
+
+  // ========================================
+  // 非常コンセント設備(令第29条の2)
+  // ========================================
+  {
+    id: 'EC-001',
+    equipmentType: '非常コンセント設備',
+    conditions: [{ type: 'floors', operator: '>=', value: 11 }],
+    legalBasis: '令第29条の2',
+    priority: 85,
+    scope: '11階以上',
+    notes: '11階以上の各階',
+  },
+
+  // ========================================
+  // 無線通信補助設備(令第29条の4)
+  // ========================================
+  {
+    id: 'RC-001',
+    equipmentType: '無線通信補助設備',
+    conditions: [
+      { type: 'basement', operator: '==', value: true },
+      { type: 'area', operator: '>=', value: 1000 },
+    ],
+    legalBasis: '令第29条の4',
+    priority: 85,
+    scope: '地階部分',
+    notes: '地階で床面積1000㎡以上',
+  },
+];
+
+/**
+ * 設備種別でルールをフィルタ
+ */
+export function getRulesByEquipmentType(
+  equipmentType: string
+): InstallationRule[] {
+  return INSTALLATION_RULES.filter(rule => rule.equipmentType === equipmentType);
+}
+
+/**
+ * ルールIDでルールを取得
+ */
+export function getRuleById(id: string): InstallationRule | undefined {
+  return INSTALLATION_RULES.find(rule => rule.id === id);
+}
+
+/**
+ * 優先度順にソートされたルール一覧
+ */
+export const SORTED_RULES = [...INSTALLATION_RULES].sort(
+  (a, b) => b.priority - a.priority
+);
