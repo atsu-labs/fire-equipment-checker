@@ -9,7 +9,7 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, type, unit, error, helpText, className, id, name, ...props }, ref) => {
+  ({ label, type, unit, error, helpText, className, id, name, value, ...props }, ref) => {
     // Generate unique ID for accessibility
     const inputId = id || name || `input-${Math.random().toString(36).substr(2, 9)}`;
     
@@ -32,6 +32,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             className={inputClasses}
             id={inputId}
             name={name}
+            value={value ?? ''}
             aria-invalid={error ? 'true' : 'false'}
             aria-describedby={error ? `${inputId}-error` : undefined}
             {...props}
