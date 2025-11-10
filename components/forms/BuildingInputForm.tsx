@@ -11,6 +11,7 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import UsageCodeSelect from './UsageCodeSelect';
 import BasicAttributesSection from './BasicAttributesSection';
+import { FloorUsageTable } from './FloorUsageTable';
 import SpecialAttributesSection from './SpecialAttributesSection';
 
 export interface BuildingInputFormProps {
@@ -94,7 +95,7 @@ export function BuildingInputForm({
   const {
     control,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors, isValid, isDirty },
     watch,
     reset,
   } = useForm<BuildingInfoFormExtendedInput>({
@@ -269,14 +270,7 @@ export function BuildingInputForm({
               <h2 className="text-xl font-semibold text-gray-900 mb-4">
                 階別用途詳細
               </h2>
-              <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                <p className="text-gray-600 mb-4">
-                  複合用途建築物の場合、階×用途ごとの詳細情報を入力してください。
-                </p>
-                <p className="text-sm text-gray-500">
-                  ※ 階別用途詳細テーブルは Phase 3 で実装予定です
-                </p>
-              </div>
+              <FloorUsageTable control={control} errors={errors} />
             </div>
           )}
 

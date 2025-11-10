@@ -195,19 +195,19 @@ describe('BuildingInputForm - Section Integration (Task 7.2)', () => {
   });
 
   describe('セクション統合 - 複合用途条件付きレンダリング', () => {
-    it('should show floor usage details placeholder only for complex usage (16)', async () => {
+    it('should show FloorUsageTable when complex usage (16) is selected', async () => {
       render(<BuildingInputForm />);
 
       // 最初は表示されない
-      expect(screen.queryByText(/Phase 3/i)).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /行を追加/i })).not.toBeInTheDocument();
 
       // 複合用途を選択
       const selectElements = screen.getAllByRole('combobox');
       await userEvent.selectOptions(selectElements[0], '16-i');
 
-      // 表示される
+      // テーブルが表示される
       await waitFor(() => {
-        expect(screen.getByText(/Phase 3/i)).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /行を追加/i })).toBeInTheDocument();
       });
     });
 
@@ -218,8 +218,8 @@ describe('BuildingInputForm - Section Integration (Task 7.2)', () => {
       const selectElements = screen.getAllByRole('combobox');
       await userEvent.selectOptions(selectElements[0], '6-ro-1');
 
-      // 表示されない
-      expect(screen.queryByText(/Phase 3/i)).not.toBeInTheDocument();
+      // テーブルが表示されない
+      expect(screen.queryByRole('button', { name: /行を追加/i })).not.toBeInTheDocument();
     });
   });
 
@@ -289,6 +289,195 @@ describe('BuildingInputForm - Section Integration (Task 7.2)', () => {
       expect(floorsInput.value).toBe('3');
       expect(undergroundFloorsInput.value).toBe('0');
       expect(directStairInput.value).toBe('2');
+    });
+  });
+
+  describe('Task 7.3: 複合用途モード切り替え機能', () => {
+    it('should show FloorUsageTable when complex usage (16) code is selected', async () => {
+      render(<BuildingInputForm />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/用途コード選択/i)).toBeInTheDocument();
+      });
+
+      // 複合用途を選択
+      const selectElements = screen.getAllByRole('combobox');
+      if (selectElements.length > 0) {
+        await userEvent.selectOptions(selectElements[0], '16-i');
+      }
+
+      // FloorUsageTableが表示されることを確認（テーブルのヘッダーが見える）
+      await waitFor(() => {
+        // "行を追加" ボタンがあることを確認（FloorUsageTableの一部）
+        const addRowButton = screen.queryByRole('button', { name: /行を追加/i });
+        expect(addRowButton).toBeInTheDocument();
+      }, { timeout: 3000 });
+    });
+
+    it('should display complex usage table with proper headers when 16 code is selected', async () => {
+      render(<BuildingInputForm />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/用途コード選択/i)).toBeInTheDocument();
+      });
+
+      // 複合用途を選択
+      const selectElements = screen.getAllByRole('combobox');
+      if (selectElements.length > 0) {
+        await userEvent.selectOptions(selectElements[0], '16-i');
+      }
+
+      // FloorUsageTableが表示されることを確認（テーブルの「行を追加」ボタンで確認）
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /行を追加/i })).toBeInTheDocument();
+        
+        // FloorUsageTable特有のヘッダーセルを確認
+        const tableHeaderCells = screen.getAllByRole('columnheader', { name: /階数|用途コード|床面積|収容人員/ });
+        expect(tableHeaderCells.length).toBeGreaterThan(0);
+      }, { timeout: 3000 });
+    });
+
+    it('should hide FloorUsageTable when switching from complex to single usage', async () => {
+      render(<BuildingInputForm />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/用途コード選択/i)).toBeInTheDocument();
+      });
+
+      // 複合用途を選択
+      const selectElements = screen.getAllByRole('combobox');
+      if (selectElements.length > 0) {
+        await userEvent.selectOptions(selectElements[0], '16-i');
+      }
+
+      // FloorUsageTableが表示されることを確認
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /行を追加/i })).toBeInTheDocument();
+      }, { timeout: 3000 });
+
+      // 単一用途に切り替え
+      const selectElements2 = screen.getAllByRole('combobox');
+      if (selectElements2.length > 0) {
+        await userEvent.selectOptions(selectElements2[0], '6-ro-1');
+      }
+
+      // FloorUsageTableが非表示になることを確認
+      await waitFor(() => {
+        const addRowButton = screen.queryByRole('button', { name: /行を追加/i });
+        expect(addRowButton).not.toBeInTheDocument();
+      }, { timeout: 3000 });
+    });
+  });
+
+  describe('Task 7.4: バリデーションとボタン制御', () => {
+    it('should disable submit button when there are validation errors', async () => {
+      render(<BuildingInputForm />);
+
+      await waitFor(() => {
+        const submitButton = screen.getByRole('button', { name: /判定実行/i });
+        // 初期状態では必須フィールドが未入力なのでdisabledであるべき
+        expect(submitButton).toBeDisabled();
+      });
+    });
+
+    it('should disable submit button until all required fields are filled', async () => {
+      render(<BuildingInputForm />);
+
+      await waitFor(() => {
+        const submitButton = screen.getByRole('button', { name: /判定実行/i });
+        expect(submitButton).toBeDisabled();
+      });
+
+      // 用途コードのみ入力
+      const selectElements = screen.getAllByRole('combobox');
+      if (selectElements.length > 0) {
+        await userEvent.selectOptions(selectElements[0], '6-ro-1');
+      }
+
+      // まだdisabledのままであるべき（他の必須フィールドが未入力）
+      const submitButton = screen.getByRole('button', { name: /判定実行/i });
+      expect(submitButton).toBeDisabled();
+    });
+
+    it('should disable submit button during form submission (isLoading)', async () => {
+      // APIをゆっくり返すようモック
+      fetchMock.mockImplementation(() =>
+        new Promise(resolve =>
+          setTimeout(() => {
+            resolve({
+              ok: true,
+              status: 200,
+              json: () => Promise.resolve({
+                building: {
+                  usageCode: '6-ro-1',
+                  totalArea: 1000,
+                  floors: 3,
+                  undergroundFloors: 0,
+                },
+                requiredEquipment: [],
+                judgmentDate: new Date().toISOString(),
+                legalVersion: '2025-01',
+              }),
+            } as Response);
+          }, 500)
+        )
+      );
+
+      render(<BuildingInputForm />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/用途コード選択/i)).toBeInTheDocument();
+      });
+
+      // フォーム入力
+      const selectElements = screen.getAllByRole('combobox');
+      if (selectElements.length > 0) {
+        await userEvent.selectOptions(selectElements[0], '6-ro-1');
+      }
+
+      const inputs = screen.getAllByLabelText(/延床面積|階数|地階数/i);
+      if (inputs.length >= 3) {
+        await userEvent.type(inputs[0], '1000');
+        await userEvent.type(inputs[1], '3');
+        await userEvent.type(inputs[2], '0');
+      }
+
+      // 送信
+      const submitButton = screen.getByRole('button', { name: /判定実行/i });
+      await userEvent.click(submitButton);
+
+      // 送信中はボタンがdisabledであるべき
+      await waitFor(() => {
+        expect(submitButton).toBeDisabled();
+      }, { timeout: 1000 });
+    });
+
+    it('should disable submit button for complex usage without floorUsageDetails', async () => {
+      render(<BuildingInputForm />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/用途コード選択/i)).toBeInTheDocument();
+      });
+
+      // 複合用途を選択
+      const selectElements = screen.getAllByRole('combobox');
+      if (selectElements.length > 0) {
+        await userEvent.selectOptions(selectElements[0], '16-i');
+      }
+
+      // 基本属性のみ入力
+      const inputs = screen.getAllByLabelText(/延床面積|階数|地階数/i);
+      if (inputs.length >= 3) {
+        await userEvent.type(inputs[0], '1000');
+        await userEvent.type(inputs[1], '3');
+        await userEvent.type(inputs[2], '0');
+      }
+
+      // 複合用途でfloorUsageDetailsが空なのでボタンはdisabledであるべき
+      await waitFor(() => {
+        const submitButton = screen.getByRole('button', { name: /判定実行/i });
+        expect(submitButton).toBeDisabled();
+      }, { timeout: 3000 });
     });
   });
 });
