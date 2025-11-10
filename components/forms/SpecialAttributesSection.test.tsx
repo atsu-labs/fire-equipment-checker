@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect } from 'vitest';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { SpecialAttributesSection } from './SpecialAttributesSection';
+import SpecialAttributesSection from './SpecialAttributesSection';
 import { buildingInfoFormSchemaExtended, type BuildingInfoFormExtendedInput } from '@/lib/regulations/utils/schemas';
 
 // SpecialAttributesSectionをテストするためのラッパーコンポーネント

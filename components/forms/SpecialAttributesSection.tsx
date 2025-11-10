@@ -19,7 +19,7 @@ interface SpecialAttributesSectionProps {
  * - 無窓階、避難階、直通階段数等の特殊属性の入力UI提供
  * - 階数に応じた条件付きレンダリング
  */
-export function SpecialAttributesSection({
+function SpecialAttributesSection({
   control,
   errors,
   floors,
@@ -32,11 +32,13 @@ export function SpecialAttributesSection({
         control={control}
         render={({ field }) => (
           <Checkbox
-            {...field}
             label="無窓階"
             helpText="すべての出入口が屋内に面している階"
             checked={field.value as boolean}
             onChange={(e) => field.onChange(e.target.checked)}
+            onBlur={field.onBlur}
+            ref={field.ref}
+            error={errors.isWindowless?.message}
           />
         )}
       />
@@ -47,11 +49,13 @@ export function SpecialAttributesSection({
         control={control}
         render={({ field }) => (
           <Checkbox
-            {...field}
             label="避難階"
             helpText="直接地上へ通じる出口を有する階"
             checked={field.value as boolean}
             onChange={(e) => field.onChange(e.target.checked)}
+            onBlur={field.onBlur}
+            ref={field.ref}
+            error={errors.isEvacuationFloor?.message}
           />
         )}
       />
@@ -62,11 +66,13 @@ export function SpecialAttributesSection({
         control={control}
         render={({ field }) => (
           <Checkbox
-            {...field}
             label="避難上有効な屋外階段あり"
             helpText="総務省令で定める避難上有効な構造の屋外階段"
             checked={field.value as boolean}
             onChange={(e) => field.onChange(e.target.checked)}
+            onBlur={field.onBlur}
+            ref={field.ref}
+            error={errors.hasEffectiveOutdoorStair?.message}
           />
         )}
       />
@@ -77,11 +83,13 @@ export function SpecialAttributesSection({
         control={control}
         render={({ field }) => (
           <Checkbox
-            {...field}
             label="防火壁区画あり"
             helpText="避難上有効な開口部を有しない壁で区画"
             checked={field.value as boolean}
             onChange={(e) => field.onChange(e.target.checked)}
+            onBlur={field.onBlur}
+            ref={field.ref}
+            error={errors.hasFirewallSeparation?.message}
           />
         )}
       />
@@ -100,8 +108,10 @@ export function SpecialAttributesSection({
                 placeholder="0"
                 helpText="避難階又は地上に直通する階段の数"
                 error={errors.directStairCount?.message}
-                {...field}
-                value={field.value || ''}
+                value={field.value ?? ''}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                ref={field.ref}
               />
             </div>
           )}
@@ -110,3 +120,5 @@ export function SpecialAttributesSection({
     </div>
   );
 }
+
+export default SpecialAttributesSection;

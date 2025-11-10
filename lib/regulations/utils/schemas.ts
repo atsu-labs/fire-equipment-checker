@@ -303,6 +303,21 @@ export const buildingInfoFormSchemaExtended = z
       .refine(arr => arr === undefined || arr.length <= 1000, {
         message: '階別用途詳細の行数が多すぎます',
       }),
+    // 特殊属性（Task 6.1）
+    isWindowless: z.boolean().optional(),
+    isEvacuationFloor: z.boolean().optional(),
+    directStairCount: z
+      .union([z.number().int().nonnegative(), z.string()])
+      .optional()
+      .transform(val => {
+        if (typeof val === 'string') {
+          const num = parseInt(val, 10);
+          return isNaN(num) ? undefined : num;
+        }
+        return val;
+      }),
+    hasEffectiveOutdoorStair: z.boolean().optional(),
+    hasFirewallSeparation: z.boolean().optional(),
   })
   .superRefine((val, ctx) => {
     // 複合用途(16系)の場合、floorUsageDetails が必須

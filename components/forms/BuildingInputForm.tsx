@@ -11,7 +11,7 @@ import { ErrorMessage } from '@/components/ui/ErrorMessage';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import UsageCodeSelect from './UsageCodeSelect';
 import BasicAttributesSection from './BasicAttributesSection';
-import { SpecialAttributesSection } from './SpecialAttributesSection';
+import SpecialAttributesSection from './SpecialAttributesSection';
 
 export interface BuildingInputFormProps {
   /** 初期データ(復元用) */
